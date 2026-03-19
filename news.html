@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ilmiy Maktab yangiliklari — konferensiyalar, grantlar, yutuqlar va ilmiy hamkorliklar haqida eng so'nggi ma'lumotlar.">
+  <title>Yangiliklar — Ilmiy Maktab</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+<div id="cart-placeholder"></div>
+
+<div class="page-header">
+  <h1>📰 Yangiliklar</h1>
+  <p>Ilmiy maktabimizdagi eng so'nggi voqealar va yangiliklar</p>
+</div>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="filter-tabs" id="newsFilters">
+      <button class="filter-tab active" data-filter="all">Barchasi</button>
+      <button class="filter-tab" data-filter="Konferensiya">Konferensiya</button>
+      <button class="filter-tab" data-filter="Yangilik">Yangilik</button>
+      <button class="filter-tab" data-filter="Grant">Grant</button>
+      <button class="filter-tab" data-filter="Hamkorlik">Hamkorlik</button>
+      <button class="filter-tab" data-filter="Yutuq">Yutuq</button>
+    </div>
+    <div class="news-grid fade-in" id="newsGrid"></div>
+  </div>
+</section>
+
+<!-- News Detail Modal -->
+<div class="modal-overlay" id="newsDetailModal">
+  <div class="modal" style="max-width:620px;">
+    <button class="modal-close" onclick="closeNewsDetail()">✕</button>
+    <div class="news-category-badge" id="newsDetailCategory" style="display:inline-block;position:static;margin-bottom:12px;"></div>
+    <h2 id="newsDetailTitle"></h2>
+    <div class="news-date" id="newsDetailDate" style="margin:8px 0 16px;"></div>
+    <div class="news-detail-body" id="newsDetailContent"></div>
+  </div>
+</div>
+
+<div id="footer-placeholder"></div>
+<div id="modals-placeholder"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const newsColors = [
+    'linear-gradient(135deg, #1e3a5f, #2d5a87)',
+    'linear-gradient(135deg, #3d1e5f, #5a2d87)',
+    'linear-gradient(135deg, #1e5f3a, #2d874a)',
+    'linear-gradient(135deg, #5f3a1e, #875a2d)',
+    'linear-gradient(135deg, #5f1e3a, #872d5a)',
+    'linear-gradient(135deg, #1e5f5f, #2d8787)'
+  ];
+  const newsIcons = ['📢', '🔬', '💰', '🤝', '🏅', '🥇'];
+
+  function renderNews(filter = 'all') {
+    let news = getData('news');
+    if (filter !== 'all') news = news.filter(n => n.category === filter);
+
+    document.getElementById('newsGrid').innerHTML = news.map((n, i) => `
+      <div class="news-card" onclick="openNewsDetail(${n.id})" style="cursor:pointer;">
+        <div class="news-image" style="background:${newsColors[i % newsColors.length]};">
+          ${newsIcons[i % newsIcons.length]}
+          <div class="news-category-badge">${n.category}</div>
+        </div>
+        <div class="news-body">
+          <div class="news-date">📅 ${new Date(n.date).toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          <h3>${n.title}</h3>
+          <p>${n.summary}</p>
+          <span class="news-read-more">Batafsil →</span>
+        </div>
+      </div>
+    `).join('');
+
+    initScrollAnimations();
+  }
+
+  function openNewsDetail(id) {
+    const news = getData('news').find(n => n.id === id);
+    if (!news) return;
+    document.getElementById('newsDetailTitle').textContent = news.title;
+    document.getElementById('newsDetailDate').textContent = '📅 ' + new Date(news.date).toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('newsDetailCategory').textContent = news.category;
+    document.getElementById('newsDetailContent').textContent = news.content;
+    document.getElementById('newsDetailModal').classList.add('active');
+  }
+
+  function closeNewsDetail() {
+    document.getElementById('newsDetailModal').classList.remove('active');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderNews();
+
+    document.querySelectorAll('#newsFilters .filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('#newsFilters .filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderNews(tab.dataset.filter);
+      });
+    });
+  });
+</script>
+</body>
+</html>

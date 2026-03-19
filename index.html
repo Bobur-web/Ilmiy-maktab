@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Ilmiy Maktab</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div id="toastContainer" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
+
+<!-- Admin Login -->
+<div id="adminLoginSection" class="admin-layout" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
+  <div class="glass-card" style="padding:40px;max-width:420px;width:100%;">
+    <h2 style="font-family:var(--font-heading);font-size:1.6rem;margin-bottom:6px;text-align:center;">🔐 Admin kirish</h2>
+    <p style="text-align:center;color:var(--text-muted);font-size:0.88rem;margin-bottom:24px;">Admin paneliga kirish uchun ma'lumotlarni kiriting</p>
+    <form onsubmit="adminLogin(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@uzresearch.uz" required>
+      </div>
+      <div class="form-group">
+        <label>Parol</label>
+        <input type="password" id="adminPassword" placeholder="Parol" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">Kirish</button>
+    </form>
+    <p style="text-align:center;margin-top:16px;font-size:0.8rem;color:var(--text-muted);">
+      Demo: admin@uzresearch.uz / admin123
+    </p>
+  </div>
+</div>
+
+<!-- Admin Dashboard -->
+<div id="adminDashboard" class="admin-dashboard-layout" style="display:none;">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <div class="nav-brand-icon">IM</div>
+      <div class="nav-brand-text">Admin <span>Panel</span></div>
+    </div>
+    <nav class="admin-sidebar-nav" id="adminTabs" aria-label="Admin Menu">
+      <button class="admin-tab active" data-panel="orders">📋 Buyurtmalar</button>
+      <button class="admin-tab" data-panel="books">📚 Kitoblar</button>
+      <button class="admin-tab" data-panel="news">📰 Yangiliklar</button>
+      <button class="admin-tab" data-panel="scholars">👨‍🔬 Olimlar</button>
+      <button class="admin-tab" data-panel="pages">⚙️ Ma'lumotlar</button>
+      <button class="admin-tab" data-panel="themes">🎨 Tema & Menyu</button>
+      <button class="admin-tab" data-panel="users">👥 Foydalanuvchilar</button>
+      <button class="admin-tab" data-panel="messages">📩 Xabarlar</button>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <button class="btn btn-secondary btn-sm" style="width:100%" onclick="adminLogout()">🚪 Chiqish</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <h2>Boshqaruv paneli</h2>
+      <div>
+        <a href="../index.html" class="btn btn-outline btn-sm" target="_blank">Saytni ko'rish</a>
+      </div>
+    </header>
+
+    <div class="admin-content-inner">
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); margin-bottom: 24px;">
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-number" id="adminStatOrders">0</div><div class="stat-label">Buyurtmalar</div></div>
+        <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-number" id="adminStatPending" style="color:var(--warning);">0</div><div class="stat-label">Kutilmoqda</div></div>
+        <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-number" id="adminStatBooks" style="color:var(--accent-teal);">0</div><div class="stat-label">Kitoblar</div></div>
+        <div class="stat-card"><div class="stat-icon">📰</div><div class="stat-number" id="adminStatNews" style="color:var(--accent-purple);">0</div><div class="stat-label">Yangiliklar</div></div>
+        <div class="stat-card"><div class="stat-icon">👨‍🔬</div><div class="stat-number" id="adminStatScholars" style="color:var(--accent-rose);">0</div><div class="stat-label">Olimlar</div></div>
+        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-number" id="adminStatUsers">0</div><div class="stat-label">Foydalanuvchilar</div></div>
+      </div>
+
+      <!-- Orders Panel -->
+      <div class="admin-panel active" id="panel-orders">
+        <div class="filter-tabs" id="orderFilters" style="justify-content:flex-start;margin-bottom:20px;">
+          <button class="filter-tab active" data-status="all">Barchasi</button>
+          <button class="filter-tab" data-status="kutilmoqda">⏳ Kutilmoqda</button>
+          <button class="filter-tab" data-status="tasdiqlangan">✅ Tasdiqlangan</button>
+          <button class="filter-tab" data-status="rad etilgan">❌ Rad etilgan</button>
+        </div>
+        <div id="ordersContainer"></div>
+      </div>
+
+      <!-- Books Panel -->
+      <div class="admin-panel" id="panel-books">
+        <div class="admin-toolbar">
+          <h3>📚 Kitoblar boshqaruvi</h3>
+          <button class="btn btn-primary btn-sm" onclick="openBookForm()">➕ Yangi kitob</button>
+        </div>
+        <div class="glass-card" style="padding:24px;overflow-x:auto;">
+          <div id="booksTableContainer"></div>
+        </div>
+      </div>
+
+      <!-- News Panel -->
+      <div class="admin-panel" id="panel-news">
+        <div class="admin-toolbar">
+          <h3>📰 Yangiliklar boshqaruvi</h3>
+          <button class="btn btn-primary btn-sm" onclick="openNewsForm()">➕ Yangi yangilik</button>
+        </div>
+        <div class="glass-card" style="padding:24px;overflow-x:auto;">
+          <div id="newsTableContainer"></div>
+        </div>
+      </div>
+
+      <!-- Scholars Panel -->
+      <div class="admin-panel" id="panel-scholars">
+        <div class="admin-toolbar">
+          <h3>👨‍🔬 Olimlar boshqaruvi</h3>
+          <button class="btn btn-primary btn-sm" onclick="openScholarForm()">➕ Yangi olim</button>
+        </div>
+        <div class="glass-card" style="padding:24px;overflow-x:auto;">
+          <div id="scholarsTableContainer"></div>
+        </div>
+      </div>
+
+      <!-- Pages Settings Panel -->
+      <div class="admin-panel" id="panel-pages">
+        <div class="admin-toolbar">
+          <h3>⚙️ Sayt ma'lumotlari</h3>
+        </div>
+        <div class="glass-card" style="padding:24px;">
+          <form id="siteSettingsForm" onsubmit="saveSiteSettings(event)">
+            <h4 style="margin-bottom:16px;color:var(--accent-gold);border-bottom:1px solid var(--border-glass);padding-bottom:8px;">Bosh sahifa</h4>
+            <div class="admin-form-grid">
+              <div class="form-group full-width">
+                <label>Asosiy sarlavha</label>
+                <input type="text" id="setHeroTitle" required>
+              </div>
+              <div class="form-group full-width">
+                <label>Asosiy matn</label>
+                <textarea id="setHeroSubtitle" rows="3" required></textarea>
+              </div>
+            </div>
+
+            <h4 style="margin:24px 0 16px;color:var(--accent-gold);border-bottom:1px solid var(--border-glass);padding-bottom:8px;">Statistika bo'limi</h4>
+            <div class="admin-form-grid">
+              <div class="form-group">
+                <label>1-Statistika nomi</label>
+                <input type="text" id="setStat1Label" required>
+              </div>
+              <div class="form-group">
+                <label>1-Statistika qiymati</label>
+                <input type="number" id="setStat1Val" required>
+              </div>
+              <div class="form-group">
+                <label>2-Statistika nomi</label>
+                <input type="text" id="setStat2Label" required>
+              </div>
+              <div class="form-group">
+                <label>2-Statistika qiymati</label>
+                <input type="number" id="setStat2Val" required>
+              </div>
+              <div class="form-group">
+                <label>3-Statistika nomi</label>
+                <input type="text" id="setStat3Label" required>
+              </div>
+              <div class="form-group">
+                <label>3-Statistika qiymati</label>
+                <input type="number" id="setStat3Val" required>
+              </div>
+              <div class="form-group">
+                <label>4-Statistika nomi</label>
+                <input type="text" id="setStat4Label" required>
+              </div>
+              <div class="form-group">
+                <label>4-Statistika qiymati</label>
+                <input type="number" id="setStat4Val" required>
+              </div>
+            </div>
+
+            <h4 style="margin:24px 0 16px;color:var(--accent-gold);border-bottom:1px solid var(--border-glass);padding-bottom:8px;">Aloqa ma'lumotlari</h4>
+            <div class="admin-form-grid">
+              <div class="form-group">
+                <label>Telefon</label>
+                <input type="text" id="setContactPhone" required>
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="setContactEmail" required>
+              </div>
+              <div class="form-group full-width">
+                <label>Manzil</label>
+                <input type="text" id="setContactAddress" required>
+              </div>
+            </div>
+            
+            <div style="margin-top:24px;text-align:right;">
+              <button type="submit" class="btn btn-primary btn-lg" style="min-width:200px;">💾 Sozlamalarni saqlash</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Themes Panel -->
+      <div class="admin-panel" id="panel-themes">
+        <div class="admin-toolbar">
+          <h3>🎨 Tema & Menyu boshqaruvi</h3>
+        </div>
+        
+        <div class="admin-form-grid">
+          <!-- Theme Settings -->
+          <div class="glass-card" style="padding:24px;">
+            <h4 style="margin-bottom:16px;color:var(--accent-gold);border-bottom:1px solid var(--border-glass);padding-bottom:8px;">Ranglar sozlamasi</h4>
+            <form onsubmit="saveThemeSettings(event)" id="themeSettingsForm">
+              <div class="form-group">
+                <label>Asosiy Orqa fon (--bg-primary)</label>
+                <div style="display:flex;gap:10px;">
+                  <input type="color" id="themeBgPrimary" style="width:50px;height:40px;padding:2px;">
+                  <input type="text" id="themeBgPrimaryText" style="flex:1;" readonly>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Ikkilamchi Orqa fon (--bg-secondary)</label>
+                <div style="display:flex;gap:10px;">
+                  <input type="color" id="themeBgSecondary" style="width:50px;height:40px;padding:2px;">
+                  <input type="text" id="themeBgSecondaryText" style="flex:1;" readonly>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Asosiy Urg'u rangi (--accent-gold)</label>
+                <div style="display:flex;gap:10px;">
+                  <input type="color" id="themeAccentGold" style="width:50px;height:40px;padding:2px;">
+                  <input type="text" id="themeAccentGoldText" style="flex:1;" readonly>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Ikkilamchi Urg'u rangi (--accent-teal)</label>
+                <div style="display:flex;gap:10px;">
+                  <input type="color" id="themeAccentTeal" style="width:50px;height:40px;padding:2px;">
+                  <input type="text" id="themeAccentTealText" style="flex:1;" readonly>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="resetThemeDefaults()" style="margin-bottom:12px;">Dastlabki holatga qaytarish</button>
+              <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">💾 Ranglarni saqlash</button>
+            </form>
+          </div>
+
+          <!-- Menus Settings -->
+          <div class="glass-card" style="padding:24px;">
+            <h4 style="margin-bottom:16px;color:var(--accent-gold);border-bottom:1px solid var(--border-glass);padding-bottom:8px;">Menyular</h4>
+            <div id="menusContainer" style="margin-bottom:16px;">
+              <!-- Menus injected here -->
+            </div>
+            
+            <form onsubmit="addMenuItem(event)" style="border-top:1px solid var(--border-glass); padding-top:16px;">
+              <h5>Yangi havola qo'shish</h5>
+              <div style="display:flex; gap:10px; margin-top:8px;">
+                <div class="form-group" style="flex:1;margin-bottom:0;">
+                  <input type="text" id="newMenuText" placeholder="Havola nomi" required>
+                </div>
+                <div class="form-group" style="flex:1;margin-bottom:0;">
+                  <input type="text" id="newMenuUrl" placeholder="Manzil (URL)" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">➕</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Panel -->
+      <div class="admin-panel" id="panel-users">
+        <div class="admin-toolbar">
+          <h3>👥 Foydalanuvchilar</h3>
+        </div>
+        <div id="usersContainer"></div>
+      </div>
+
+      <!-- Messages Panel -->
+      <div class="admin-panel" id="panel-messages">
+        <div class="admin-toolbar">
+          <h3>📩 Xabarlar</h3>
+        </div>
+        <div id="messagesContainer"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Forms and Modals below -->
+
+<!-- Screenshot Preview Modal -->
+<div class="modal-overlay" id="screenshotModal">
+  <div class="modal" style="max-width:600px;text-align:center;">
+    <button class="modal-close" onclick="document.getElementById('screenshotModal').classList.remove('active')">✕</button>
+    <h2 style="margin-bottom:16px;">📷 To'lov skreenshot</h2>
+    <img id="screenshotPreviewFull" style="max-width:100%;max-height:70vh;border-radius:var(--radius-md);" alt="screenshot">
+  </div>
+</div>
+
+<!-- Book Form Modal -->
+<div class="modal-overlay" id="bookFormModal">
+  <div class="modal" style="max-width:640px;">
+    <button class="modal-close" onclick="closeBookForm()">✕</button>
+    <h2 id="bookFormTitle">📚 Yangi kitob qo'shish</h2>
+    <p class="subtitle" id="bookFormSubtitle">Kitob ma'lumotlarini kiriting</p>
+    <form onsubmit="saveBook(event)">
+      <input type="hidden" id="bookEditId">
+      <div class="admin-form-grid">
+        <div class="form-group full-width">
+          <label>Kitob nomi *</label>
+          <input type="text" id="bookFormTitle_input" placeholder="Kitob nomi" required>
+        </div>
+        <div class="form-group">
+          <label>Muallif *</label>
+          <input type="text" id="bookFormAuthor" placeholder="Prof. Familiya I.A." required>
+        </div>
+        <div class="form-group">
+          <label>Kategoriya *</label>
+          <input type="text" id="bookFormCategory" placeholder="Fizika, Kimyo, IT..." required>
+        </div>
+        <div class="form-group">
+          <label>Turi *</label>
+          <select id="bookFormType" required>
+            <option value="free">Bepul</option>
+            <option value="paid">Pullik</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Format *</label>
+          <select id="bookFormFormat" required>
+            <option value="online">Onlayn</option>
+            <option value="offline">Oflayn</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>PDF fayl (faqat onlayn kitoblar uchun)</label>
+          <input type="file" id="bookPdfInput" accept="application/pdf" class="admin-input-file">
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Tanlangan pdf fayl kitob sahifasida "O'qish" tugmasi orqali ochiladi.</p>
+        </div>
+        <div class="form-group">
+          <label>Narxi (so'm)</label>
+          <input type="number" id="bookFormPrice" placeholder="0" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Sahifalar soni</label>
+          <input type="number" id="bookFormPages" placeholder="0" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Yili</label>
+          <input type="number" id="bookFormYear" placeholder="2026" value="2026" min="1900" max="2100">
+        </div>
+        <div class="form-group">
+          <label>ISBN</label>
+          <input type="text" id="bookFormIsbn" placeholder="978-XXXX-XX-XXX-X">
+        </div>
+        <div class="form-group">
+          <label>Reyting (0-5)</label>
+          <input type="number" id="bookFormRating" value="4.5" min="0" max="5" step="0.1">
+        </div>
+        <div class="form-group full-width">
+          <label>Tavsif</label>
+          <textarea id="bookFormDesc" placeholder="Kitob haqida qisqacha tavsif..." rows="3"></textarea>
+        </div>
+        <div class="form-group full-width">
+          <label>Kitob matni (onlayn o'qish uchun)</label>
+          <textarea id="bookFormContent" placeholder="Kitob matnini shu yerga kiriting (ixtiyoriy)..." rows="5"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button type="submit" class="btn btn-primary btn-lg" style="flex:1;">💾 Saqlash</button>
+        <button type="button" class="btn btn-secondary btn-lg" onclick="closeBookForm()">Bekor qilish</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- News Form Modal -->
+<div class="modal-overlay" id="newsFormModal">
+  <div class="modal" style="max-width:580px;">
+    <button class="modal-close" onclick="closeNewsForm()">✕</button>
+    <h2 id="newsFormTitle">📰 Yangi yangilik qo'shish</h2>
+    <p class="subtitle" id="newsFormSubtitle">Yangilik ma'lumotlarini kiriting</p>
+    <form onsubmit="saveNews(event)">
+      <input type="hidden" id="newsEditId">
+      <div class="form-group">
+        <label>Sarlavha *</label>
+        <input type="text" id="newsFormHeadline" placeholder="Yangilik sarlavhasi" required>
+      </div>
+      <div class="admin-form-grid">
+        <div class="form-group">
+          <label>Kategoriya *</label>
+          <select id="newsFormCategory" required>
+            <option value="Konferensiya">Konferensiya</option>
+            <option value="Yangilik">Yangilik</option>
+            <option value="Grant">Grant</option>
+            <option value="Hamkorlik">Hamkorlik</option>
+            <option value="Yutuq">Yutuq</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sana *</label>
+          <input type="date" id="newsFormDate" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Qisqacha mazmuni *</label>
+        <textarea id="newsFormSummary" placeholder="Yangilik haqida qisqacha..." rows="2" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>To'liq matn *</label>
+        <textarea id="newsFormContent" placeholder="Yangilik to'liq matni..." rows="6" required></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button type="submit" class="btn btn-primary btn-lg" style="flex:1;">💾 Saqlash</button>
+        <button type="button" class="btn btn-secondary btn-lg" onclick="closeNewsForm()">Bekor qilish</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scholar Form Modal -->
+<div class="modal-overlay" id="scholarFormModal">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-close" onclick="closeScholarForm()">✕</button>
+    <h2 id="scholarFormTitle">👨‍🔬 Yangi olim qo'shish</h2>
+    <p class="subtitle" id="scholarFormSubtitle">Olim ma'lumotlarini kiriting</p>
+    <form onsubmit="saveScholar(event)">
+      <input type="hidden" id="scholarEditId">
+      <div class="form-group">
+        <label>To'liq ism *</label>
+        <input type="text" id="scholarFormName" placeholder="Prof. Familiya Ism Otasiismi" required>
+      </div>
+      <div class="admin-form-grid">
+        <div class="form-group">
+          <label>Ilmiy daraja *</label>
+          <input type="text" id="scholarFormDegree" placeholder="Fizika-matematika fanlari doktori" required>
+        </div>
+        <div class="form-group">
+          <label>Kafedra *</label>
+          <input type="text" id="scholarFormDept" placeholder="Nazariy fizika kafedrasi" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="scholarFormEmail" placeholder="email@uzresearch.uz">
+        </div>
+        <div class="form-group">
+          <label>Maqolalar soni</label>
+          <input type="number" id="scholarFormPubs" placeholder="0" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>h-index</label>
+          <input type="number" id="scholarFormHindex" placeholder="0" value="0" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ilmiy sohalar (vergul bilan ajratilsin) *</label>
+        <input type="text" id="scholarFormFields" placeholder="Kvant mexanikasi, Statistik fizika" required>
+      </div>
+      <div class="form-group">
+        <label>Biografiya</label>
+        <textarea id="scholarFormBio" placeholder="Olim haqida qisqacha ma'lumot..." rows="4"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button type="submit" class="btn btn-primary btn-lg" style="flex:1;">💾 Saqlash</button>
+        <button type="button" class="btn btn-secondary btn-lg" onclick="closeScholarForm()">Bekor qilish</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirm Delete Dialog -->
+<div id="confirmDialog" style="display:none;"></div>
+
+<script src="../js/data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

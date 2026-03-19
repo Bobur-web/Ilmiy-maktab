@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ilmiy kitobni onlayn o'qish — Ilmiy Maktab bepul ta'lim resurslari.">
+  <title>Kitob o'qish — Ilmiy Maktab</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+<div id="cart-placeholder"></div>
+
+<div class="reader-container">
+  <div class="reader-header">
+    <a href="books.html" class="reader-back">← Kitoblarga qaytish</a>
+  </div>
+
+  <div class="reader-content" id="readerContent">
+    <div class="reader-title-bar">
+      <h1 id="readerTitle">Yuklanmoqda...</h1>
+      <div class="meta" id="readerMeta"></div>
+    </div>
+    <div class="reader-body" id="readerBody">
+      <p style="text-align:center;color:var(--text-muted);padding:40px;">Kitob yuklanmoqda...</p>
+    </div>
+  </div>
+</div>
+
+<div id="footer-placeholder"></div>
+<div id="modals-placeholder"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const bookId = parseInt(params.get('id'));
+
+    if (!bookId) {
+      document.getElementById('readerBody').innerHTML = '<p style="text-align:center;color:var(--danger);padding:40px;">Kitob topilmadi. <a href="books.html" style="color:var(--accent-gold);">Kitoblarga qaytish</a></p>';
+      return;
+    }
+
+    const books = getData('books');
+    const book = books.find(b => b.id === bookId);
+
+    if (!book) {
+      document.getElementById('readerBody').innerHTML = '<p style="text-align:center;color:var(--danger);padding:40px;">Kitob topilmadi. <a href="books.html" style="color:var(--accent-gold);">Kitoblarga qaytish</a></p>';
+      return;
+    }
+
+    // Check if user can read this book
+    if (book.type === 'paid') {
+      const user = getCurrentUser();
+      if (!user) {
+        document.getElementById('readerBody').innerHTML = `
+          <div style="text-align:center;padding:60px 20px;">
+            <div style="font-size:3rem;margin-bottom:12px;">🔒</div>
+            <h3 style="margin-bottom:8px;">Bu kitob pullik</h3>
+            <p style="color:var(--text-muted);margin-bottom:20px;">Kitobni o'qish uchun sotib oling.</p>
+            <a href="books.html" class="btn btn-primary">📚 Kitoblarga qaytish</a>
+          </div>`;
+        document.getElementById('readerTitle').textContent = book.title;
+        return;
+      }
+
+      // Check if user has approved order for this book
+      const orders = getData('orders');
+      const hasAccess = orders.some(o =>
+        o.userId === user.id &&
+        o.status === 'tasdiqlangan' &&
+        o.items.some(item => item.id === bookId)
+      );
+
+      if (!hasAccess) {
+        document.getElementById('readerBody').innerHTML = `
+          <div style="text-align:center;padding:60px 20px;">
+            <div style="font-size:3rem;margin-bottom:12px;">🔒</div>
+            <h3 style="margin-bottom:8px;">Ruxsat berilmagan</h3>
+            <p style="color:var(--text-muted);margin-bottom:20px;">Bu kitobni o'qish uchun avval sotib oling va admin tasdiqlashini kuting.</p>
+            <a href="books.html" class="btn btn-primary">📚 Kitoblarga qaytish</a>
+          </div>`;
+        document.getElementById('readerTitle').textContent = book.title;
+        return;
+      }
+    }
+
+    if (book.pdfData) {
+      document.getElementById('readerBody').innerHTML = `
+        <iframe src="${book.pdfData}" width="100%" height="800px" style="border:none;border-radius:var(--radius-sm);background:#fff;"></iframe>
+      `;
+    } else if (book.sampleContent) {
+      document.getElementById('readerBody').textContent = book.sampleContent;
+    } else {
+      document.getElementById('readerBody').innerHTML = `
+        <div style="text-align:center;padding:60px 20px;">
+          <div style="font-size:3rem;margin-bottom:12px;">📄</div>
+          <h3 style="margin-bottom:8px;">Onlayn matn mavjud emas</h3>
+          <p style="color:var(--text-muted);margin-bottom:20px;">Bu kitobning PDF yoki matnli versiyasi yuklanmagan.</p>
+          <a href="books.html" class="btn btn-primary">📚 Kitoblarga qaytish</a>
+        </div>`;
+    }
+  });
+</script>
+</body>
+</html>

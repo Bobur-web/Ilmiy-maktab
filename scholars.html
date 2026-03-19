@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ilmiy Maktab olimlari — fizika, kimyo, biologiya, IT va boshqa sohalardagi yetakchi professorlar va tadqiqotchilar.">
+  <title>Ilmiy Maktab Olimlari — Ilmiy Maktab</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+<div id="cart-placeholder"></div>
+
+<main>
+<header class="page-header">
+  <h1>👨‍🔬 Ilmiy maktab olimlari</h1>
+  <p>Turli fan yo'nalishlari bo'yicha yetakchi professorlar va tadqiqotchilar</p>
+</header>
+
+<section class="section" style="padding-top:0;" aria-label="Olimlar ro'yxati">
+  <div class="container">
+    <div class="filter-tabs" id="scholarFilters">
+      <button class="filter-tab active" data-filter="all">Barchasi</button>
+    </div>
+    <div class="scholars-grid fade-in" id="scholarsGrid"></div>
+  </div>
+</section>
+</main>
+
+<div id="footer-placeholder"></div>
+<div id="modals-placeholder"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const scholars = getData('scholars');
+
+    // Build filter tabs from unique fields
+    const allFields = new Set();
+    scholars.forEach(s => s.fields.forEach(f => allFields.add(f)));
+    const filtersContainer = document.getElementById('scholarFilters');
+    allFields.forEach(field => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tab';
+      btn.dataset.filter = field;
+      btn.textContent = field;
+      filtersContainer.appendChild(btn);
+    });
+
+    function renderScholars(filter = 'all') {
+      let data = scholars;
+      if (filter !== 'all') data = scholars.filter(s => s.fields.includes(filter));
+
+      document.getElementById('scholarsGrid').innerHTML = data.map(s => {
+        const initials = s.name.split(' ').map(w => w[0]).join('').slice(0, 2);
+        return `
+          <article class="scholar-card">
+            <div class="scholar-header">
+              <div class="scholar-avatar">${initials}</div>
+              <div>
+                <div class="scholar-name">${s.name}</div>
+                <div class="scholar-title">${s.title}</div>
+                <div class="scholar-dept">${s.department}</div>
+              </div>
+            </div>
+            <p class="scholar-bio">${s.bio}</p>
+            <div class="scholar-fields">
+              ${s.fields.map(f => `<span class="scholar-field">${f}</span>`).join('')}
+            </div>
+            <div class="scholar-stats">
+              <div class="scholar-stat">
+                <div class="scholar-stat-value">${s.publications}</div>
+                <div class="scholar-stat-label">Maqolalar</div>
+              </div>
+              <div class="scholar-stat">
+                <div class="scholar-stat-value">${s.hIndex}</div>
+                <div class="scholar-stat-label">h-index</div>
+              </div>
+              <div class="scholar-stat">
+                <div class="scholar-stat-value">📧</div>
+                <div class="scholar-stat-label"><a href="mailto:${s.email}" style="color:var(--accent-gold);text-decoration:none;font-size:0.72rem;">${s.email}</a></div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+      initScrollAnimations();
+    }
+
+    renderScholars();
+
+    filtersContainer.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('filter-tab')) return;
+      filtersContainer.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      renderScholars(e.target.dataset.filter);
+    });
+  });
+</script>
+</body>
+</html>

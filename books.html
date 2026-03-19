@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ilmiy Maktab o'quv adabiyotlari — bepul va pullik kitoblar, onlayn o'qish va oflayn sotib olish imkoniyati.">
+  <title>O'quv Adabiyotlar — Ilmiy Maktab</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+<div id="cart-placeholder"></div>
+
+<main>
+<header class="page-header">
+  <h1>📚 O'quv adabiyotlar</h1>
+  <p>Bepul va pullik ilmiy kitoblar — onlayn o'qing yoki oflayn sotib oling</p>
+</header>
+
+<section class="section" style="padding-top:0;" aria-label="Kitoblar ro'yxati">
+  <div class="container">
+    <!-- Filter Tabs -->
+    <div class="filter-tabs" id="bookFilters">
+      <button class="filter-tab active" data-filter="all">Barchasi</button>
+      <button class="filter-tab" data-filter="free">🆓 Bepul</button>
+      <button class="filter-tab" data-filter="paid">💰 Pullik</button>
+      <button class="filter-tab" data-filter="online">🌐 Onlayn</button>
+      <button class="filter-tab" data-filter="offline">📦 Oflayn</button>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="filter-tabs" id="categoryFilters" style="margin-top:-16px;margin-bottom:36px;">
+      <button class="filter-tab active" data-cat="all">Barcha fanlar</button>
+    </div>
+
+    <div class="books-grid fade-in" id="booksGrid"></div>
+  </div>
+</section>
+</main>
+
+<div id="footer-placeholder"></div>
+<div id="modals-placeholder"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  let currentFilter = 'all';
+  let currentCategory = 'all';
+
+  const bookColors = [
+    'linear-gradient(135deg, #1a1a4e, #2d1b69)',
+    'linear-gradient(135deg, #0d2137, #1a3a5c)',
+    'linear-gradient(135deg, #2d1b32, #4a1942)',
+    'linear-gradient(135deg, #1b2d1b, #0d3726)',
+    'linear-gradient(135deg, #3d2b0d, #5c4a1a)',
+    'linear-gradient(135deg, #0d373d, #1a5c5c)',
+    'linear-gradient(135deg, #370d22, #5c1a3d)',
+    'linear-gradient(135deg, #1a2d4e, #2d4169)'
+  ];
+
+  const bookImages = { 'Fizika': 'img/icons/fizika.png', 'Biologiya': 'img/icons/biologiya.png', 'Kimyo': 'img/icons/kimyo.png', 'IT': 'img/icons/it.png', 'Filologiya': 'img/icons/filologiya.png', 'Iqtisodiyot': 'img/icons/iqtisodiyot.png', 'Matematika': 'img/icons/matematika.png' };
+
+  function renderBooks() {
+    let books = getData('books');
+
+    if (currentFilter === 'free') books = books.filter(b => b.type === 'free');
+    else if (currentFilter === 'paid') books = books.filter(b => b.type === 'paid');
+    else if (currentFilter === 'online') books = books.filter(b => b.format === 'online');
+    else if (currentFilter === 'offline') books = books.filter(b => b.format === 'offline');
+
+    if (currentCategory !== 'all') books = books.filter(b => b.category === currentCategory);
+
+    if (books.length === 0) {
+      document.getElementById('booksGrid').innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);">
+          <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+          <p>Bu bo'limda hozircha kitob mavjud emas</p>
+        </div>`;
+      return;
+    }
+
+    document.getElementById('booksGrid').innerHTML = books.map((b, i) => `
+      <article class="book-card">
+        <div class="book-cover" style="background:${bookColors[i % bookColors.length]};">
+          <div class="book-cover-placeholder">
+            <img src="${bookImages[b.category] || 'img/icons/fizika.png'}" alt="${b.category}" class="book-cover-img">
+            <span class="book-title-overlay">${b.title}</span>
+          </div>
+          <div class="book-badges">
+            <span class="badge ${b.type === 'free' ? 'badge-free' : 'badge-paid'}">${b.type === 'free' ? 'Bepul' : 'Pullik'}</span>
+            <span class="badge ${b.format === 'online' ? 'badge-online' : 'badge-offline'}">${b.format === 'online' ? 'Onlayn' : 'Oflayn'}</span>
+          </div>
+        </div>
+        <div class="book-info">
+          <div class="book-category">${b.category}</div>
+          <h3>${b.title}</h3>
+          <div class="book-author">${b.author}</div>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">${b.description.slice(0, 100)}...</p>
+          <div class="book-meta">
+            <span class="book-rating">★ ${b.rating}</span>
+            <span>${b.reviews} sharh</span>
+            <span>${b.pages} bet</span>
+            <span>${b.year}</span>
+          </div>
+          <div class="book-price ${b.price === 0 ? 'free' : ''}">${b.price === 0 ? 'Bepul' : formatPrice(b.price)}</div>
+          <div class="book-actions">
+            ${b.type === 'free' && b.format === 'online'
+              ? `<a href="book-reader.html?id=${b.id}" class="btn btn-teal btn-sm" style="flex:1;justify-content:center;">📖 O'qish</a>`
+              : ''}
+            ${b.type === 'paid'
+              ? `<button class="btn btn-primary btn-sm" style="flex:1;justify-content:center;" onclick="addToCart(${b.id})">🛒 Savatga</button>`
+              : ''}
+            ${b.format === 'offline' && b.type === 'paid'
+              ? `<button class="btn btn-secondary btn-sm" onclick="showToast('Oflayn kitobni sotib olish uchun savatga qo\\'shing','info')">📦 Oflayn</button>`
+              : ''}
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    initScrollAnimations();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Build category filters
+    const books = getData('books');
+    const categories = [...new Set(books.map(b => b.category))];
+    const catContainer = document.getElementById('categoryFilters');
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tab';
+      btn.dataset.cat = cat;
+      btn.textContent = cat;
+      catContainer.appendChild(btn);
+    });
+
+    renderBooks();
+
+    // Type/format filter
+    document.getElementById('bookFilters').addEventListener('click', (e) => {
+      if (!e.target.classList.contains('filter-tab')) return;
+      document.querySelectorAll('#bookFilters .filter-tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilter = e.target.dataset.filter;
+      renderBooks();
+    });
+
+    // Category filter
+    document.getElementById('categoryFilters').addEventListener('click', (e) => {
+      if (!e.target.classList.contains('filter-tab')) return;
+      document.querySelectorAll('#categoryFilters .filter-tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      currentCategory = e.target.dataset.cat;
+      renderBooks();
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ilmiy Maktab bilan bog'lanish — savollar, takliflar va hamkorlik uchun biz bilan aloqaga chiqing.">
+  <title>Bog'lanish — Ilmiy Maktab</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+<div id="cart-placeholder"></div>
+
+<main>
+<header class="page-header">
+  <h1>📬 Bog'lanish</h1>
+  <p>Savollaringiz yoki takliflaringiz bormi? Biz bilan bog'laning!</p>
+</header>
+
+<section class="section" style="padding-top:0;" aria-label="Bog'lanish ma'lumotlari">
+  <div class="container">
+    <div class="contact-grid fade-in">
+      <!-- Contact Info -->
+      <div class="contact-info-cards">
+        <address class="contact-info-card" style="font-style:normal;">
+          <div class="contact-icon">📍</div>
+          <div class="contact-info-text">
+            <h4>Manzil</h4>
+            <p id="dynContactAddress">Toshkent shahri, Universitet ko'chasi, 4-uy</p>
+          </div>
+        </address>
+        <address class="contact-info-card" style="font-style:normal;">
+          <div class="contact-icon">📞</div>
+          <div class="contact-info-text">
+            <h4>Telefon</h4>
+            <p id="dynContactPhone">+998 71 234 56 78</p>
+          </div>
+        </address>
+        <address class="contact-info-card" style="font-style:normal;">
+          <div class="contact-icon">📧</div>
+          <div class="contact-info-text">
+            <h4>Email</h4>
+            <p id="dynContactEmail">info@uzresearch.uz</p>
+          </div>
+        </address>
+        <div class="contact-info-card">
+          <div class="contact-icon">🕐</div>
+          <div class="contact-info-text">
+            <h4>Ish vaqti</h4>
+            <p>Dushanba — Juma: 9:00 — 18:00</p>
+          </div>
+        </div>
+        <div class="contact-info-card">
+          <div class="contact-icon">🌐</div>
+          <div class="contact-info-text">
+            <h4>Ijtimoiy tarmoqlar</h4>
+            <p>Telegram: @ilmiymaktab · Instagram: @ilmiymaktab</p>
+          </div>
+        </div>
+
+        <!-- MAP -->
+        <div style="border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-glass);height:220px;">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2996.789!2d69.2793!3d41.3111!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDHCsDE4JzQwLjAiTiA2OcKwMTYnNDUuNSJF!5e0!3m2!1suz!2s!4v1"
+            width="100%" height="220" style="border:0;filter:invert(90%) hue-rotate(180deg);" allowfullscreen="" loading="lazy">
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="contact-form">
+        <h3 style="font-family:var(--font-heading);font-size:1.4rem;margin-bottom:20px;">✉️ Xabar yuborish</h3>
+        <form id="contactForm" onsubmit="handleContactSubmit(event)">
+          <div class="form-group">
+            <label>Ismingiz</label>
+            <input type="text" id="contactName" placeholder="To'liq ismingiz" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="contactEmail" placeholder="email@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Mavzu</label>
+            <select id="contactSubject" required>
+              <option value="">Mavzuni tanlang</option>
+              <option value="general">Umumiy savol</option>
+              <option value="admission">Qabul haqida</option>
+              <option value="collaboration">Hamkorlik</option>
+              <option value="books">Kitoblar haqida</option>
+              <option value="technical">Texnik yordam</option>
+              <option value="other">Boshqa</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Xabaringiz</label>
+            <textarea id="contactMessage" placeholder="Xabaringizni yozing..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">📤 Xabar yuborish</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="footer-placeholder"></div>
+<div id="modals-placeholder"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  function handleContactSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('contactName').value;
+    const email = document.getElementById('contactEmail').value;
+    const subject = document.getElementById('contactSubject').value;
+    const message = document.getElementById('contactMessage').value;
+
+    // Save to localStorage for demo
+    const messages = JSON.parse(localStorage.getItem('uzr_messages') || '[]');
+    messages.push({ name, email, subject, message, date: new Date().toISOString() });
+    localStorage.setItem('uzr_messages', JSON.stringify(messages));
+
+    showToast("Xabaringiz muvaffaqiyatli yuborildi! Tez orada javob beramiz.", 'success');
+    document.getElementById('contactForm').reset();
+  }
+</script>
+</body>
+</html>
